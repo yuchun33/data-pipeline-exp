@@ -42,9 +42,9 @@ jobs:
     - name: Set Kubernetes Context
       uses: azure/k8s-set-context@v3
       with:
-        method: kubeconfig
-        kubeconfig: ${{ secrets.KUBE_CONFIG }} # 在 GitHub Secret 中存入你的 Kubeconfig 內容
-
+        method: service-account
+        token: ${{ secrets.KUBE_CONFIG }}
+        
     - name: Deploy to Cluster
       uses: azure/k8s-deploy@v4
       with:
