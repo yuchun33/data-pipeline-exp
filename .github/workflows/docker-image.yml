@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'apps/producer/**'    # 只有當 producer 程式碼變動時才觸發
-      - 'deployments/**'     # 或是部署檔變動時
+      - 'manifests/**'     # 或是部署檔變動時
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
