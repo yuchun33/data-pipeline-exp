@@ -44,7 +44,7 @@ jobs:
       with:
         method: service-account
         k8s-url: https://4.190.35.224:6443
-        k8s-secret: github-actions-token
+        k8s-secret: github-actions-deployer
         token: ${{ secrets.KUBE_CONFIG }}
         
     - name: Deploy to Cluster
