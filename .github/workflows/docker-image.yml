@@ -47,12 +47,12 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }} # 在 GitHub Secret 中存入你的 Kubeconfig 內容
 
-      #- name: Deploy to Cluster
-      #  uses: azure/k8s-deploy@v4
-      #  with:
-      #    images: |
-      #      ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:${{ github.sha }}
-      #    manifests: k8s/deployment.yaml # 指向你的 Deployment YAML 檔
+      - name: Deploy to Cluster
+        uses: azure/k8s-deploy@v4
+        with:
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:${{ github.sha }}
+          manifests: manifests/deployment.yaml
 
       
   
