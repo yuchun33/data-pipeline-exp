@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'apps/producer/**'    # 只有當 producer 程式碼變動時才觸發
-      - 'deployments/**'     # 或是部署檔變動時
+      - 'manifests/**'     # 或是部署檔變動時
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
@@ -37,22 +37,23 @@ jobs:
         tags: |
           ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:latest
           ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:${{ github.sha }}
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      # 1. 部署到自建 K8S
-      - name: Set Kubernetes Context
-        uses: azure/k8s-set-context@v3
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG }} # 在 GitHub Secret 中存入你的 Kubeconfig 內容
-
-      - name: Deploy to Cluster
-        uses: azure/k8s-deploy@v4
-        with:
-          images: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:${{ github.sha }}
-          manifests: manifests/deployment.yaml
+    
+    # 3. 部署到自建 K8S
+    - name: Set Kubernetes Context
+      uses: azure/k8s-set-context@v3
+      with:
+        method: service-account
+        k8s-url: https://4.190.35.224:6443
+        k8s-secret: ${{ secrets.KUBERNETES_SECRET_YAML }}
+        token: ${{ secrets.KUBE_CONFIG }}
+        
+    - name: Deploy to Cluster
+      uses: azure/k8s-deploy@v4
+      with:
+        images: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:${{ github.sha }}
+        manifests: manifests/deployment.yaml
+        namespace: production
 
       
   
