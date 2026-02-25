@@ -46,4 +46,4 @@ robust
   - monitoring: prometheus
 - requests & limits of resources & quotas 
 - liveness & readiness probe
-- node affinity & anti-affinity(node pool) 
+- node affinity & anti-affinity(node pool)
