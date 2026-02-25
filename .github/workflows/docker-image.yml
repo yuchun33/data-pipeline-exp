@@ -43,6 +43,7 @@ jobs:
       uses: azure/k8s-set-context@v3
       with:
         method: service-account
+        k8s-url: https://4.190.35.224:6443
         token: ${{ secrets.KUBE_CONFIG }}
         
     - name: Deploy to Cluster
