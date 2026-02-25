@@ -37,22 +37,20 @@ jobs:
         tags: |
           ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:latest
           ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:${{ github.sha }}
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      # 1. 部署到自建 K8S
-      - name: Set Kubernetes Context
-        uses: azure/k8s-set-context@v3
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG }} # 在 GitHub Secret 中存入你的 Kubeconfig 內容
+    
+    # 3. 部署到自建 K8S
+    - name: Set Kubernetes Context
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG }} # 在 GitHub Secret 中存入你的 Kubeconfig 內容
 
-      - name: Deploy to Cluster
-        uses: azure/k8s-deploy@v4
-        with:
-          images: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:${{ github.sha }}
-          manifests: manifests/deployment.yaml
+    - name: Deploy to Cluster
+      uses: azure/k8s-deploy@v4
+      with:
+        images: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:${{ github.sha }}
+        manifests: manifests/deployment.yaml
 
       
   
