@@ -8,6 +8,8 @@ on:
       - 'deployments/**'     # 或是部署檔變動時
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs: {}
 
 jobs:
   build-and-push:
