@@ -17,4 +17,4 @@ spec:
       containers:
       - name: kafka-producer
         image: yuchun33/kafka-producer:latest
-        command: ["python", "-u", "src/main.py"]
+        command: ["python", "-u", "src/main.py", "--bootstrap-servers", "kafka-headless:9092"]
