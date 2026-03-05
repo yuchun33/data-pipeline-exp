@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kafka-producer
+  namespace: production
   labels:
     app: kafka-producer
 spec:
@@ -18,4 +19,4 @@ spec:
       - name: kafka-producer
         image: yuchun33/kafka-producer:latest
         imagePullPolicy: Always
-        command: ["python", "-u", "src/main.py", "--bootstrap-servers", "kafka-headless:9092"]
+        command: ["python", "-u", "src/main.py", "--bootstrap-servers", "kafka-headless.default.svc.cluster.local:9092"]
