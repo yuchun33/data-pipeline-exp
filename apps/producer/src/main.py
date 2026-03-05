@@ -56,14 +56,29 @@ def on_send_error(excp) -> None:
 
 
 def build_message() -> Dict[str, Any]:
+    work_orders = [f"WO-{i:03d}" for i in range(1, 21)]
+    # Distribute 20 work orders across 4 machines with 25 slot-fifo combinations each
+    work_order_config = {
+        work_orders[i]: {
+            "machine_id": f"machine-{i // 5}",
+            "module": f"module-{i // 5}",
+            "slot": f"slot-{(i // 5) * 25 + (i % 5) * 5}",
+            "fifo": f"fifo-{(i // 5) * 25 + (i % 5) * 5 + (i % 5)}"
+        }
+        for i in range(len(work_orders))
+    }
+    
+    chosen_order = random.choice(work_orders)
+    config = work_order_config[chosen_order]
+    
     return {
-        "machine_id": os.getenv("MACHINE_ID", "machine-id"),
-        "module": os.getenv("MODULE_ID", "module-id"),
-        "slot": os.getenv("SLOT_ID", "slot-id"),
-        "fifo": os.getenv("FIFO_ID", "fifo-id"),
-        "order": os.getenv("ORDER_ID", "order-id"),
+        "machine_id": os.getenv("MACHINE_ID", config["machine_id"]),
+        "module": os.getenv("MODULE_ID", config["module"]),
+        "slot": os.getenv("SLOT_ID", config["slot"]),
+        "fifo": os.getenv("FIFO_ID", config["fifo"]),
+        "order": chosen_order,
         "timestamp": time.time(),
-        "status": random.choice(["OK", "FAIL"]),
+        "status": "FAIL" if random.random() < 0.05 else "OK",
     }
 
 
