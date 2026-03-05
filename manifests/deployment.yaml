@@ -19,4 +19,4 @@ spec:
       - name: kafka-producer
         image: yuchun33/kafka-producer:latest
         imagePullPolicy: Always
-        command: ["python", "-u", "src/main.py", "--bootstrap-servers", "kafka-headless.default.svc.cluster.local:9092"]
+        command: ["python", "-u", "src/main.py", "--bootstrap-servers", "20.210.29.252:9094"]
