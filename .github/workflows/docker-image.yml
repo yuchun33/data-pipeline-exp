@@ -53,6 +53,7 @@ jobs:
         images: |
           ${{ secrets.DOCKERHUB_USERNAME }}/kafka-producer:${{ github.sha }}
         manifests: manifests/deployment.yaml
+        namespace: production
 
       
   
