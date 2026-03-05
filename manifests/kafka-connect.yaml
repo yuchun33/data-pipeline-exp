@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-connect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-connect
+  template:
+    metadata:
+      labels:
+        app: kafka-connect
+    spec:
+      containers:
+        - name: kafka-connect
+          image: confluentinc/cp-kafka-connect:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: CONNECT_BOOTSTRAP_SERVERS
+              value: "kafka-headless:9092"
+            - name: CONNECT_GROUP_ID
+              value: "minio-sink-group"
+            # 內部 Topic 設定 (Kafka Connect 儲存狀態用的，必須設定)
+            - name: CONNECT_CONFIG_STORAGE_TOPIC
+              value: "connect-configs"
+            - name: CONNECT_OFFSET_STORAGE_TOPIC
+              value: "connect-offsets"
+            - name: CONNECT_STATUS_STORAGE_TOPIC
+              value: "connect-status"
+            # 強制將內部 Topic 副本數設為 1，因為我們的 Kafka 是單節點的
+            - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: CONNECT_KEY_CONVERTER
+              value: "org.apache.kafka.connect.storage.StringConverter"
+            - name: CONNECT_VALUE_CONVERTER
+              value: "org.apache.kafka.connect.storage.StringConverter"
+            # MinIO (S3) 認證資訊
+            - name: AWS_ACCESS_KEY_ID
+              value: "minioadmin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "minioadmin"
+            - name: CONNECT_REST_ADVERTISED_HOST_NAME
+              value: "kafka-connect"
+            - name: CONNECT_PLUGIN_PATH
+              value: "/usr/share/java,/usr/share/confluent-hub-components"
+          command: 
+            - bash 
+            - -c 
+            - |
+              #
+              echo "Installing connector plugins"
+              confluent-hub install --no-prompt confluentinc/kafka-connect-s3:latest
+              #
+              echo "Launching Kafka Connect worker"
+              /etc/confluent/docker/run & 
+              #
+              sleep infinity
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-connect-service
+spec:
+  ports:
+    - port: 8083
+      targetPort: 8083
+  selector:
+    app: kafka-connect

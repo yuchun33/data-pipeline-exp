@@ -13,27 +13,28 @@ dashboard preview
 operation
 
 medallion lakehouse
-- bronze: kafka -> python consumer (airflow dag every 5 mins) -> miniO
-- silver: miniO -> (add more info) -> miniO
+- bronze: kafka -> kafka connect -> miniO
+- silver: miniO -> airflow (add more info) -> miniO
 - gold: miniO -> elasticsearch -> realtime dashboard
 
 tools
-- python
+- [v]python
 - angular
-- kafka
+- [v]kafka
+- [v]kafka-connect
 - nginx
 - argoCD
 - elasticsearch
 - sql
 - airflow
 - spark
-- miniO
-- prometheus
+- [v]miniO
+- [v]prometheus
   
-- kubernetes
-- helm
-- docker
-- github action
+- [v]kubernetes
+- [v]helm
+- [v]docker
+- [v]github action
 
 - azure vm
 
