@@ -17,7 +17,7 @@ operation
 - date-gen: kafka -> kafka connect -> miniO
 - bronze: merge daily logs into parquet. | kafka -> airflow/daily_bronze_merge_production_log.py -> miniO
 - silver: handle ETL and add readable info. | miniO -> airflow/daily_silver_etl.py -> miniO
-- gold: static calculation and report. | miniO -> airflow/daily_golden_gen_table.py -> minio/sql -> realtime dashboard
+- gold: stat. calculation and report. | miniO -> airflow/daily_golden_gen_table.py -> minio/sql -> realtime dashboard
 
 ## spark verify
 
