@@ -39,7 +39,9 @@ spec:
             - name: CONNECT_KEY_CONVERTER
               value: "org.apache.kafka.connect.storage.StringConverter"
             - name: CONNECT_VALUE_CONVERTER
-              value: "org.apache.kafka.connect.storage.StringConverter"
+              value: "org.apache.kafka.connect.json.JsonConverter"
+            - name: CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE
+              value: "false"
             # MinIO (S3) 認證資訊
             - name: AWS_ACCESS_KEY_ID
               value: "minioadmin"
@@ -49,9 +51,9 @@ spec:
               value: "kafka-connect"
             - name: CONNECT_PLUGIN_PATH
               value: "/usr/share/java,/usr/share/confluent-hub-components"
-          command: 
-            - bash 
-            - -c 
+          command:
+            - bash
+            - -c
             - |
               #
               echo "Installing connector plugins"

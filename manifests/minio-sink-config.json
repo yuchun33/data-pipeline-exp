@@ -8,14 +8,14 @@
     "s3.region": "us-east-1",
     "s3.bucket.name": "production-log",
 
-    "store.url": "http://minio-service:9000", 
+    "store.url": "http://minio-service:9000",
     "s3.path.style.access": "true",
 
-    "format.class": "io.confluent.connect.s3.format.json.JsonFormat",    
+    "format.class": "io.confluent.connect.s3.format.json.JsonFormat",
     "s3.part.ext": ".json",
-    
-    "flush.size": "50000", 
-    "rotate.interval.ms": "60000", 
+
+    "flush.size": "50000",
+    "rotate.interval.ms": "60000",
 
     "partitioner.class": "io.confluent.connect.storage.partitioner.TimeBasedPartitioner",
     "path.format": "'year'=YYYY/'month'=MM/'day'=dd/'hour'=HH",
