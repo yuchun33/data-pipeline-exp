@@ -69,7 +69,8 @@ def compact_daily_logs(**kwargs):
 
     for idx, key in enumerate(keys, 1):
         try:
-            file_obj = s3_hook.get_key(key, bucket_name=bucket).get()["Body"].read()
+            file_obj = s3_hook.get_key(key, bucket_name=bucket).get()[
+                "Body"].read()
 
             # 根據檔案副檔名決定讀取方式
             if key.endswith(".parquet"):
@@ -87,13 +88,6 @@ def compact_daily_logs(**kwargs):
 
             # --- 新增：強制 Schema 檢查 ---
             expected_cols = ["timestamp", "machine_id"]  # 定義你一定要有的欄位
-
-            # 狀況 A：如果是讀到數字欄位 (例如 ['0'])
-            if "0" in df.columns:
-                logger.error(
-                    f"檔案 {key} 格式異常，欄位被解析為 '0'。內容預覽：{df.iloc[0].to_dict()}"
-                )
-                continue  # 或者 raise
 
             # 狀況 B：檢查關鍵欄位是否存在
             missing = [c for c in expected_cols if c not in df.columns]
@@ -165,12 +159,15 @@ def verify_parquet(**kwargs):
 
     # 從上一個 task 取得資訊
     ti = kwargs["ti"]
-    merged_file_key = ti.xcom_pull(task_ids="compact_daily_logs", key="merged_file_key")
-    expected_rows = ti.xcom_pull(task_ids="compact_daily_logs", key="total_rows")
+    merged_file_key = ti.xcom_pull(
+        task_ids="compact_daily_logs", key="merged_file_key")
+    expected_rows = ti.xcom_pull(
+        task_ids="compact_daily_logs", key="total_rows")
 
     if not merged_file_key:
         logger.error("無法從上一個 task 獲取合併檔案路徑")
-        raise ValueError("Missing merged_file_key from compact_daily_logs task")
+        raise ValueError(
+            "Missing merged_file_key from compact_daily_logs task")
 
     logger.info(f"開始驗證檔案：{merged_file_key}")
     logger.info(f"預期筆數：{expected_rows}")

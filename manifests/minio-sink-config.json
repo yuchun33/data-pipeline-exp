@@ -15,7 +15,7 @@
     "s3.part.ext": ".json",
 
     "flush.size": "50000",
-    "rotate.interval.ms": "60000",
+    "rotate.interval.ms": "300000",
 
     "partitioner.class": "io.confluent.connect.storage.partitioner.TimeBasedPartitioner",
     "path.format": "'year'=YYYY/'month'=MM/'day'=dd/'hour'=HH",

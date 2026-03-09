@@ -16,8 +16,14 @@ operation
 
 - date-gen: kafka -> kafka connect -> miniO
 - bronze: merge daily logs into parquet. | kafka -> airflow/daily_bronze_merge_production_log.py -> miniO
+  - trigget period: daily
+  - 確認連線 -> 確認 bucket、key 存在 -> 讀取檔案 -> 合併 -> 存合併後的檔案 -> 確認合併前後筆數一致
 - silver: handle ETL and add readable info. | miniO -> airflow/daily_silver_etl.py -> miniO
+  - trigget period: daily
+  - 確認連線 -> 確認 bucket、key、bronze key 存在 -> 讀取檔案 -> 確認預期欄位存在 -> 計算新欄位 -> 判斷欄位合理值 -> 移除不合理值 -> 補齊空值 -> 存檔 -> 確認存檔成功 & 筆數一致
 - gold: stat. calculation and report. | miniO -> airflow/daily_golden_gen_table.py -> minio/sql -> realtime dashboard
+  - trigger period: once silver folder updated
+  - 確認連線 -> 確認 bucket、key、silver key 存在 -> 讀取檔案 -> 統計計算 -> 存檔 -> 通知
 
 ## spark verify
 
@@ -31,7 +37,7 @@ operation
 - [ ] argoCD
 - [ ] elasticsearch
 - [ ] sql
-- [x] airflow
+- [x] airflow http://138.91.2.93:8080/
 - [ ] spark
 - [x] miniO(minioadmin/minioadmin)
 - [x] prometheus & grafana
