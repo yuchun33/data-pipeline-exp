@@ -67,10 +67,10 @@ def build_message() -> Dict[str, Any]:
         }
         for i in range(len(work_orders))
     }
-    
+
     chosen_order = random.choice(work_orders)
     config = work_order_config[chosen_order]
-    
+
     return {
         "machine_id": os.getenv("MACHINE_ID", config["machine_id"]),
         "module": os.getenv("MODULE_ID", config["module"]),
@@ -78,7 +78,7 @@ def build_message() -> Dict[str, Any]:
         "fifo": os.getenv("FIFO_ID", config["fifo"]),
         "order": chosen_order,
         "timestamp": time.time(),
-        "status": "FAIL" if random.random() < 0.05 else "OK",
+        "status": "0" if random.random() < 0.05 else "1",
     }
 
 

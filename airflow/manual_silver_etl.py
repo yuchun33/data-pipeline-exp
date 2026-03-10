@@ -1,3 +1,5 @@
+import io
+
 from airflow import DAG, Dataset
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
@@ -36,7 +38,7 @@ def verify_key_existence(**kwargs):
     month = exec_date.strftime("%m")
     day = exec_date.strftime("%d")
 
-    prefix = f"bronze/daily-merged/year={year}/month={month}/day={day}/"
+    prefix = f"silver/daily-refined/year={year}/month={month}/day={day}"
 
     has_parquet = minio_conn.get_key(
         f"{prefix}/{year}-{month}-{day}.parquet", bucket_name=BUCKET_NAME)
@@ -44,7 +46,7 @@ def verify_key_existence(**kwargs):
     if has_parquet:
         logger.info(
             f"找到 Parquet 檔案：{BUCKET_NAME}/{prefix}/{year}-{month}-{day}.parquet")
-        kwargs['ti'].xcom_push(key='bronze_parquet_key',
+        kwargs['ti'].xcom_push(key='silver_parquet_key',
                                value=f"{prefix}/{year}-{month}-{day}.parquet")
         return {"status": "success", "file_type": "parquet", "key": f"{prefix}/{year}-{month}-{day}.parquet"}
 
@@ -55,35 +57,48 @@ def verify_key_existence(**kwargs):
             f"檔案不存在：{prefix}/{year}-{month}-{day}.parquet")
 
 
-def refine_bronze_data_to_silver(**kwargs):
+def stat_to_golden(**kwargs):
     minio_conn = S3Hook(aws_conn_id=MINIO_CONN_ID)
 
-    bronze_key = kwargs['ti'].xcom_pull(key='bronze_parquet_key')
-    file_obj = minio_conn.get_key(bronze_key, bucket_name=BUCKET_NAME).get()[
+    silver_key = kwargs['ti'].xcom_pull(
+        task_ids='verify_key_existence', key='silver_parquet_key')
+    file_obj = minio_conn.get_key(silver_key, bucket_name=BUCKET_NAME).get()[
         "Body"].read()
-    df = pd.read_parquet(file_obj.get()["Body"])
+    df = pd.read_parquet(io.BytesIO(file_obj))
     columns = df.columns.tolist()
     logger.info(f"讀取到的欄位有：{columns}")
 
-    # 計算新欄位
+    report_df = (
+        df.groupby("machine_id")
+        .agg(total_count=("status", "count"), fail_count=("is_fail", "sum"))
+        .reset_index()
+    )
 
-    # 移除欄位不合理值
+    report_df["fail_rate"] = report_df["fail_count"] / report_df["total_count"]
 
-    # 補齊空值
+    logger.info(f"計算完成的統計報表：\n{report_df.head()}")
 
-    # JOIN 其他維度表補齊靜態資料
+    # 寫回 Golden 路徑
+    buffer = io.BytesIO()
+    report_df.to_parquet(buffer, index=False)
+    buffer.seek(0)
 
-    # 寫回 Silver 路徑
+    golden_key = f"golden/daily-statistics/{silver_key.split('/')[-1]}"
+    minio_conn.load_file_obj(buffer, key=golden_key,
+                             bucket_name=BUCKET_NAME, replace=True)
+
+    logger.info(f"成功增加檔案到 {golden_key}")
 
 
 with DAG(
-    "silver_daily_etl",
+    "golden_stat_dag",
     start_date=datetime(2026, 3, 9),
-    schedule=[Dataset("s3://production-log/bronze/daily-merged/")],
+    schedule=[Dataset("s3://production-log/silver/daily-refined/")],
     catchup=False,
-    tags=["production-log", "daily"],
+    tags=["production-log"],
     dagrun_timeout=timedelta(minutes=60),
 ) as dag:
+
     connect_minio_task = PythonOperator(
         task_id="connect_minio",
         python_callable=connect_minio_and_verify_bucket_existence,
@@ -95,9 +110,9 @@ with DAG(
         python_callable=verify_key_existence
     )
 
-    refine_data_task = PythonOperator(
-        task_id="refine_data",
-        python_callable=refine_bronze_data_to_silver,
+    stat_to_golden_task = PythonOperator(
+        task_id="stat_to_golden",
+        python_callable=stat_to_golden,
     )
 
-    connect_minio_task >> verify_key_existence_task
+    connect_minio_task >> verify_key_existence_task >> stat_to_golden_task
